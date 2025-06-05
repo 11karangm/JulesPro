@@ -10,28 +10,38 @@ COLOR_BLACK = "#000000"
 COLOR_RED = "#FF0000"
 COLOR_DARK_RED = "#C00000"
 COLOR_GRAY = "#808080"
+COLOR_NEAR_BLACK = "#1e1e1e"
+COLOR_LIGHT_GRAY = "#cccccc"
+COLOR_DARK_GRAY_BORDER = "#333333"
 
 class TodoApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Todo List App - Red/White/Black Theme")
+        self.root.title("Todo List App - Dark Theme (Red/Black/White)")
 
-        self.current_theme = "light" # Base for sv_ttk, our custom scheme is light-based
+        self.current_theme = "dark"
         sv_ttk.set_theme(self.current_theme)
 
         style = ttk.Style()
 
         try:
             style.map("TEntry",
-                      # fieldbackground=[("focus", COLOR_WHITE)], # sv_ttk handles this
-                      # bordercolor=[("focus", COLOR_RED)], # sv_ttk handles this
                      )
         except tk.TclError:
             print("Note: Could not apply some TEntry focus style settings, possibly due to theme constraints.")
 
-        style.configure("Accent.TButton",
+        # Custom style for the "Add Task" button in dark mode
+        # sv_ttk buttons are image-based, so background/border changes are often overridden.
+        # Foreground (text color) is the most reliable change.
+        style.configure("AccentDark.TButton",
                         foreground=COLOR_DARK_RED,
+                        # background=COLOR_NEAR_BLACK, # Likely no effect with sv_ttk
+                        # bordercolor="#555555"       # Likely no effect with sv_ttk
                        )
+        # Example of mapping for different states (hover, pressed)
+        # style.map("AccentDark.TButton",
+        #           foreground=[('pressed', COLOR_RED), ('active', COLOR_RED)], # 'active' is hover
+        #           background=[('pressed', COLOR_BLACK), ('active', COLOR_NEAR_BLACK)]) # Again, background map likely limited effect
 
         self.root.geometry("450x600")
 
@@ -44,7 +54,8 @@ class TodoApp:
         self.task_entry.pack(side=tk.LEFT, padx=5)
         self.task_entry.bind("<Return>", self.add_task_event)
 
-        self.add_task_button = ttk.Button(input_frame, text="Add Task", command=self.add_task_event, style="Accent.TButton")
+        # Apply "AccentDark.TButton" to the add_task_button
+        self.add_task_button = ttk.Button(input_frame, text="Add Task", command=self.add_task_event, style="AccentDark.TButton")
         self.add_task_button.pack(side=tk.LEFT)
 
         list_frame = ttk.Frame(self.root)
@@ -66,43 +77,25 @@ class TodoApp:
         self.delete_task_button = ttk.Button(action_buttons_frame, text="Delete Task", command=self.delete_task_event)
         self.delete_task_button.pack(side=tk.LEFT, padx=5)
 
-        # Ensure theme toggle button and its frame are commented out or removed.
-        # self.theme_frame = ttk.Frame(self.root)
-        # self.theme_frame.pack(pady=(0,10))
-        # self.theme_toggle_button = ttk.Button(self.theme_frame, text="Switch Theme", command=self.toggle_theme)
-        # self.theme_toggle_button.pack(pady=5)
-
         self._apply_listbox_theme_colors()
         self.load_tasks()
 
     def _apply_listbox_theme_colors(self):
         self.task_listbox.configure(
-            background=COLOR_WHITE,
-            foreground=COLOR_BLACK,
+            background=COLOR_NEAR_BLACK,
+            foreground=COLOR_LIGHT_GRAY,
             selectbackground=COLOR_RED,
             selectforeground=COLOR_WHITE,
             highlightthickness=1,
-            highlightbackground=COLOR_BLACK,
+            highlightbackground=COLOR_DARK_GRAY_BORDER,
             highlightcolor=COLOR_RED
         )
-
-    # Ensure the toggle_theme method is commented out or removed.
-    # def toggle_theme(self):
-    #     # This method is not used as the theme is fixed to the custom red/white/black scheme.
-    #     # if self.current_theme == "light":
-    #     #     sv_ttk.set_theme("dark")
-    #     #     self.current_theme = "dark"
-    #     # else:
-    #     #     sv_ttk.set_theme("light")
-    #     #     self.current_theme = "light"
-    #     # self._apply_listbox_theme_colors()
-    #     # self.load_tasks()
 
     def load_tasks(self):
         self.task_listbox.delete(0, tk.END)
         tasks = database.get_tasks()
 
-        pending_fg = COLOR_BLACK
+        pending_fg = COLOR_LIGHT_GRAY
         completed_fg = COLOR_GRAY
 
         if tasks:

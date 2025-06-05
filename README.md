@@ -1,6 +1,6 @@
 # Python GUI Todo List Application
 
-A simple graphical Todo List application built with Python, using Tkinter for the GUI, SQLite for data storage, and `sv_ttk` for base widget styling. The application is presented in a custom red, white, and black visual theme.
+A simple graphical Todo List application built with Python, using Tkinter for the GUI, SQLite for data storage, and `sv_ttk` for base widget styling. The application is presented in a custom red, white, and black **dark theme**.
 
 ## Features
 
@@ -9,7 +9,7 @@ A simple graphical Todo List application built with Python, using Tkinter for th
 - Mark tasks as "completed" (visually distinguished in the list).
 - Delete tasks from the list (with a confirmation dialog).
 - Tasks are persisted in an SQLite database (`todo_list.db`), so they remain available between application sessions.
-- Custom red/white/black visual theme for a distinct look and feel.
+- Custom red/white/black visual theme (dark mode).
 
 ## Files
 
@@ -20,7 +20,7 @@ A simple graphical Todo List application built with Python, using Tkinter for th
 ## Prerequisites
 
 - **Python 3.x:** Ensure Python 3 is installed on your system. You can download it from [python.org](https://www.python.org/downloads/).
-- **sv_ttk Library:** This application uses the `sv_ttk` library to provide base styling for its themed widgets, on top of which the custom color scheme is applied.
+- **sv_ttk Library:** This application uses the `sv_ttk` library to provide base styling for its themed widgets (including the dark theme foundation), on top of which the custom color scheme is applied.
 
 You can install `sv_ttk` using pip:
 ```bash
@@ -70,7 +70,7 @@ The application also uses `tkinter` and `sqlite3`, which are part of the Python 
 
 **Using the Application:**
 
-*   Upon running, a window titled "Todo List App - Red/White/Black Theme" will appear.
+*   Upon running, a window titled "Todo List App - Dark Theme (Red/Black/White)" will appear.
 *   The first time you run the application, a file named `todo_list.db` will also be created in the same directory. This file stores your tasks. Do not delete it if you wish to keep your task data.
 
 ```
