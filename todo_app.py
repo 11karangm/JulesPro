@@ -4,15 +4,36 @@ from tkinter import messagebox
 import database
 import sv_ttk
 
+# Color Palette Constants
+COLOR_WHITE = "#FFFFFF"
+COLOR_BLACK = "#000000"
+COLOR_RED = "#FF0000"
+COLOR_DARK_RED = "#C00000"
+COLOR_GRAY = "#808080"
+
 class TodoApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Todo List App")
+        self.root.title("Todo List App - Red/White/Black Theme")
 
-        self.current_theme = "light"
+        self.current_theme = "light" # Base for sv_ttk, our custom scheme is light-based
         sv_ttk.set_theme(self.current_theme)
 
-        self.root.geometry("450x650")
+        style = ttk.Style()
+
+        try:
+            style.map("TEntry",
+                      # fieldbackground=[("focus", COLOR_WHITE)], # sv_ttk handles this
+                      # bordercolor=[("focus", COLOR_RED)], # sv_ttk handles this
+                     )
+        except tk.TclError:
+            print("Note: Could not apply some TEntry focus style settings, possibly due to theme constraints.")
+
+        style.configure("Accent.TButton",
+                        foreground=COLOR_DARK_RED,
+                       )
+
+        self.root.geometry("450x600")
 
         database.init_db()
 
@@ -23,14 +44,13 @@ class TodoApp:
         self.task_entry.pack(side=tk.LEFT, padx=5)
         self.task_entry.bind("<Return>", self.add_task_event)
 
-        self.add_task_button = ttk.Button(input_frame, text="Add Task", command=self.add_task_event)
+        self.add_task_button = ttk.Button(input_frame, text="Add Task", command=self.add_task_event, style="Accent.TButton")
         self.add_task_button.pack(side=tk.LEFT)
 
         list_frame = ttk.Frame(self.root)
         list_frame.pack(pady=10, fill=tk.BOTH, expand=True)
 
         self.task_listbox = tk.Listbox(list_frame, width=50, height=15, font=('Arial', 12), activestyle='none', borderwidth=0)
-        # selectbackground is set in update_listbox_theme
         self.task_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(10,0))
 
         scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.task_listbox.yview)
@@ -38,7 +58,7 @@ class TodoApp:
         self.task_listbox.config(yscrollcommand=scrollbar.set)
 
         action_buttons_frame = ttk.Frame(self.root)
-        action_buttons_frame.pack(pady=(5,0))
+        action_buttons_frame.pack(pady=10)
 
         self.mark_complete_button = ttk.Button(action_buttons_frame, text="Mark as Complete", command=self.mark_task_complete_event)
         self.mark_complete_button.pack(side=tk.LEFT, padx=5)
@@ -46,64 +66,44 @@ class TodoApp:
         self.delete_task_button = ttk.Button(action_buttons_frame, text="Delete Task", command=self.delete_task_event)
         self.delete_task_button.pack(side=tk.LEFT, padx=5)
 
-        theme_frame = ttk.Frame(self.root)
-        theme_frame.pack(pady=(5,10))
+        # Ensure theme toggle button and its frame are commented out or removed.
+        # self.theme_frame = ttk.Frame(self.root)
+        # self.theme_frame.pack(pady=(0,10))
+        # self.theme_toggle_button = ttk.Button(self.theme_frame, text="Switch Theme", command=self.toggle_theme)
+        # self.theme_toggle_button.pack(pady=5)
 
-        self.theme_toggle_button = ttk.Button(theme_frame, text="Switch to Dark Mode", command=self.toggle_theme)
-        self.theme_toggle_button.pack(pady=5)
+        self._apply_listbox_theme_colors()
+        self.load_tasks()
 
-        # Initial setup of listbox theme and loading tasks
-        self.update_listbox_theme() # This will also call load_tasks
-
-    def toggle_theme(self):
-        if self.current_theme == "light":
-            sv_ttk.set_theme("dark")
-            self.current_theme = "dark"
-            self.theme_toggle_button.configure(text="Switch to Light Mode")
-        else:
-            sv_ttk.set_theme("light")
-            self.current_theme = "light"
-            self.theme_toggle_button.configure(text="Switch to Dark Mode")
-
-        self.update_listbox_theme() # Apply new theme to listbox and reload tasks
-
-    def update_listbox_theme(self):
-        listbox_themes = {
-            "light": {
-                "bg": "white",
-                "fg": "black",
-                "selectbg": "#0078D4",
-                "selectfg": "white"
-            },
-            "dark": {
-                "bg": "#2b2b2b",
-                "fg": "#cccccc",
-                "selectbg": "#0078D4",
-                "selectfg": "white"
-            }
-        }
-
-        current_colors = listbox_themes.get(self.current_theme, listbox_themes["light"])
-
+    def _apply_listbox_theme_colors(self):
         self.task_listbox.configure(
-            background=current_colors["bg"],
-            foreground=current_colors["fg"], # Default text color for items
-            selectbackground=current_colors["selectbg"],
-            selectforeground=current_colors["selectfg"]
+            background=COLOR_WHITE,
+            foreground=COLOR_BLACK,
+            selectbackground=COLOR_RED,
+            selectforeground=COLOR_WHITE,
+            highlightthickness=1,
+            highlightbackground=COLOR_BLACK,
+            highlightcolor=COLOR_RED
         )
 
-        self.load_tasks() # Reload tasks to apply item-specific styling
+    # Ensure the toggle_theme method is commented out or removed.
+    # def toggle_theme(self):
+    #     # This method is not used as the theme is fixed to the custom red/white/black scheme.
+    #     # if self.current_theme == "light":
+    #     #     sv_ttk.set_theme("dark")
+    #     #     self.current_theme = "dark"
+    #     # else:
+    #     #     sv_ttk.set_theme("light")
+    #     #     self.current_theme = "light"
+    #     # self._apply_listbox_theme_colors()
+    #     # self.load_tasks()
 
     def load_tasks(self):
         self.task_listbox.delete(0, tk.END)
         tasks = database.get_tasks()
 
-        if self.current_theme == "dark":
-            pending_fg = "#cccccc"  # Light gray for pending tasks in dark mode
-            completed_fg = "#777777" # Darker gray for completed tasks in dark mode
-        else: # Light mode
-            pending_fg = "black"    # Default text color from listbox config
-            completed_fg = "gray"   # Standard gray for completed in light mode
+        pending_fg = COLOR_BLACK
+        completed_fg = COLOR_GRAY
 
         if tasks:
             for i, task_data in enumerate(tasks):
@@ -121,10 +121,7 @@ class TodoApp:
                 full_display_text = f"{visible_text} (ID: {task_id}, Status: {task_status})"
 
                 self.task_listbox.insert(tk.END, full_display_text)
-                # Only set item-specific foreground if it differs from the Listbox's default foreground
-                # or if it's a completed task that needs graying out.
-                if task_status == 'completed' or current_item_fg != self.task_listbox.cget("foreground"):
-                    self.task_listbox.itemconfig(i, {'fg': current_item_fg})
+                self.task_listbox.itemconfig(i, {'fg': current_item_fg})
 
     def add_task_event(self, event=None):
         task_description = self.task_entry.get().strip()
